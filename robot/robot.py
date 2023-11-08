@@ -74,7 +74,7 @@ class RobotController:
     def dock(self, **kwargs) -> None:
         "Docks robot"
         interface = kwargs.get("interface", self)
-        interface.send("G0 X90 Y-20")
+        interface.send("G0 X90 Y-2.903")
 
     def getPosition(self) -> None:
         "Gets current position"
@@ -115,8 +115,8 @@ class Robot(RobotController):
         
         def run(self, interface: RobotController) -> None:
             "Run sequence"
-            print(self.commandSeparator.join(self.sequence))
-            #interface.send(self.commandSeparator.join(self.sequence))
+            print(self.sequence)
+            interface.send(self.commandSeparator.join(self.sequence))
         
         def __del__(self):
             self.clear()
