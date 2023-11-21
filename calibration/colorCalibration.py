@@ -8,18 +8,18 @@ distance = 20
 def sliderChange(value) -> None:
     global trackbarSetup, upper, lower
     if not trackbarSetup: return
-    lower = cv2.getTrackbarPos("HueMin", "HSV Sliders"), cv2.getTrackbarPos("SatMin", "HSV Sliders"), cv2.getTrackbarPos("ValMin", "HSV Sliders")
-    upper = cv2.getTrackbarPos("HueMax", "HSV Sliders"), cv2.getTrackbarPos("SatMax", "HSV Sliders"), cv2.getTrackbarPos("ValMax", "HSV Sliders")
+    lower = cv2.getTrackbarPos("HueMin", "HSV Sliders White"), cv2.getTrackbarPos("SatMin", "HSV Sliders White"), cv2.getTrackbarPos("ValMin", "HSV Sliders White")
+    upper = cv2.getTrackbarPos("HueMax", "HSV Sliders White"), cv2.getTrackbarPos("SatMax", "HSV Sliders White"), cv2.getTrackbarPos("ValMax", "HSV Sliders White")
 
 def mouseEvent(event, x, y, flags, param) -> None:
     if event == cv2.EVENT_LBUTTONDOWN:
         pixel = mask.bgr2hsv(image[y][x])
-        cv2.setTrackbarPos("HueMin", "HSV Sliders", pixel[0] - distance)
-        cv2.setTrackbarPos("SatMin", "HSV Sliders", pixel[1] - distance)
-        cv2.setTrackbarPos("ValMin", "HSV Sliders", pixel[2] - distance)
-        cv2.setTrackbarPos("HueMax", "HSV Sliders", pixel[0] + distance)
-        cv2.setTrackbarPos("SatMax", "HSV Sliders", pixel[1] + distance)
-        cv2.setTrackbarPos("ValMax", "HSV Sliders", pixel[2] + distance)
+        cv2.setTrackbarPos("HueMin", "HSV Sliders White", pixel[0] - distance)
+        cv2.setTrackbarPos("SatMin", "HSV Sliders White", pixel[1] - distance)
+        cv2.setTrackbarPos("ValMin", "HSV Sliders White", pixel[2] - distance)
+        cv2.setTrackbarPos("HueMax", "HSV Sliders White", pixel[0] + distance)
+        cv2.setTrackbarPos("SatMax", "HSV Sliders White", pixel[1] + distance)
+        cv2.setTrackbarPos("ValMax", "HSV Sliders White", pixel[2] + distance)
 
 if __name__ == "__main__":
     config = configManager.loadConfig()
