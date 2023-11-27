@@ -17,8 +17,8 @@ if __name__ == "__main__":
 
     config = configManager.loadConfig()
     warpPoints = config["warpPoints"]
-    upper = config["hsv"]["upper"]
-    lower = config["hsv"]["lower"]
+    upper = config["hsv"]["white"]["upper"]
+    lower = config["hsv"]["white"]["lower"]
 
     cv2.namedWindow("Camera", cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("Masked", cv2.WINDOW_AUTOSIZE)
@@ -33,4 +33,3 @@ if __name__ == "__main__":
             case "q":
                 print("Quit")
                 break
-        
