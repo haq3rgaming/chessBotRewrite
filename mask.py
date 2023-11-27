@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-import warp
 
 def hsv2bgr(hsv: tuple[int]) -> tuple[int]:
     return tuple(cv2.cvtColor(np.uint8([[hsv]]), cv2.COLOR_HSV2BGR)[0][0])
@@ -13,7 +12,7 @@ def maskByColor(image: np.ndarray, upper: tuple[int], lower: tuple[int]) -> np.n
     return cv2.inRange(imageHSV, np.array(lower), np.array(upper))
 
 if __name__ == "__main__":
-    import camera, configManager
+    import camera, configManager, warp
 
     config = configManager.loadConfig()
     warpPoints = config["warpPoints"]
