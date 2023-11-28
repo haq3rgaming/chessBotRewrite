@@ -8,27 +8,28 @@ import cv2
 from cairosvg import svg2png
 import numpy as np
 
+class Board:
+    def __init__(self) -> None:
+        self.board = chess.Board() # Black is on bottom, white on top
 
-board = chess.Board() # Black is on bottom, white on top
+    def turn(self, color: bool=None):
+        if color is not None: self.board.turn = color
+        return self.board.turn
 
-def turn(color: bool=None):
-    if color is not None:
-        board.turn = color
-    return board.turn
+    def isLegalMove(self, move):
+        try:
+            return self.board.is_legal(self.board.parse_san(move))
+        except chess.IllegalMoveError:
+            return False
 
-def isLegalMove(move):
-    try:
-        return board.is_legal(board.parse_san(move))
-    except chess.IllegalMoveError:
-        return False
+    def move(self, move):
+        self.board.push_san(move)
 
-def move(move):
-    board.push_san(move)
+    def image(self):
+        svg = chess.svg.board(board=self.board, size=700)
+        png = svg2png(bytestring=svg)
+        return cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_UNCHANGED)
 
-def display():
-    cv2.imshow("Chessboard", image())
+    def display(self):
+        cv2.imshow("Chessboard", self.image())
 
-def image():
-    svg = chess.svg.board(board=board, size=700)
-    png = svg2png(bytestring=svg)
-    return cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_UNCHANGED)

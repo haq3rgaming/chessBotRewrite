@@ -1,42 +1,55 @@
 import cv2
 import numpy as np
-import mask, warp, configManager, camera
+from warp import createLines
 
-def splitImage(image: np.ndarray, size: list=(8,8)) -> list[np.ndarray]:
-    height, width = image.shape[:2]
-    h, w = height//size[0], width//size[1]
-    parts = [image[i*h:(i+1)*h, j*w:(j+1)*w] for i in range(size[0]) for j in range(size[1])]
-    return np.array(parts).reshape(size[0], size[1], h, w)
+class piecesDetection:
+    def __init__(self, size: list=(8,8), threshold: float=0.20) -> None:
+        self.size = size
+        self.threshold = threshold
 
-def thresholdFromImage(image: np.ndarray, threshold: float=0.50) -> bool:
-    return np.count_nonzero(image) / image.size > threshold
+    def splitImage(self, image: np.ndarray) -> list[np.ndarray]:
+        height, width = image.shape[:2]
+        h, w = height//self.size[0], width//self.size[1]
+        parts = [image[i*h:(i+1)*h, j*w:(j+1)*w] for i in range(self.size[0]) for j in range(self.size[1])]
+        return np.array(parts).reshape(self.size[0], self.size[1], h, w)
 
-def createVerityArrayFromMask(mask: np.ndarray, threshold: float=0.25, size: list=(8,8)) -> np.ndarray:
-    splitImg = splitImage(mask)
-    matrix = np.array([thresholdFromImage(splitImg[i][j], threshold) for i in range(size[0]) for j in range(size[1])]).reshape(size[0], size[1])
-    return np.rot90(matrix, 1)
+    def thresholdFromImage(self, image: np.ndarray) -> bool:
+        return np.count_nonzero(image) / image.size > self.threshold
+
+    def createVerityArrayFromMask(self, mask: np.ndarray) -> np.ndarray:
+        splitImg = self.splitImage(mask)
+        matrix = np.array([self.thresholdFromImage(splitImg[i][j]) for i in range(self.size[0]) for j in range(self.size[1])]).reshape(self.size[0], self.size[1])
+        return np.rot90(matrix, 1)
 
 def displayVerityArray(array, windowName, size: list=(8,8)):
     image = np.zeros((size[0], size[1], 3), dtype=np.uint8); image[array] = [255,255,255]
-    cv2.imshow(windowName, warp.createLines(cv2.resize(image, (0,0), fx=50, fy=50, interpolation=cv2.INTER_NEAREST)))
+    cv2.imshow(windowName, createLines(cv2.resize(image, (0,0), fx=50, fy=50, interpolation=cv2.INTER_NEAREST)))
 
 if __name__ == "__main__":
+    from configManager import ConfigManager
+    from warp import Warp
+    from camera import Camera
+    from mask import Mask
+
+    configManager = ConfigManager("config.json")
     config = configManager.loadConfig()
-    warpPoints = config["warpPoints"]
-    whiteUpper = config["hsv"]["white"]["upper"]
-    whiteLower = config["hsv"]["white"]["lower"]
+
+    warper = Warp(config["warpPoints"])
+    masker = Mask(config["hsv"]["white"]["upper"], config["hsv"]["white"]["lower"])
+    camera = Camera(config["cameraID"])
+    piecesDetect = piecesDetection()
 
     cv2.namedWindow("Camera", cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("Masked", cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("White Verity Array", cv2.WINDOW_AUTOSIZE)
     
     while True:
-        image = warp.warpImage(camera.photo(), warpPoints)
-        cv2.imshow("Camera", warp.createLines(image))
-        cv2.imshow("Masked", mask.maskByColor(image, whiteUpper, whiteLower))
-        whiteVerityArray = createVerityArrayFromMask(mask.maskByColor(image, whiteUpper, whiteLower)).tolist()
+        image = warper.warp(camera.photo())
+        cv2.imshow("Camera", createLines(image))
+        cv2.imshow("Masked", masker.maskByColor(image))
+        whiteVerityArray = piecesDetect.createVerityArrayFromMask(masker.maskByColor(image)).tolist()
         whiteVerityImage = np.zeros((8,8,3), dtype=np.uint8); whiteVerityImage[whiteVerityArray] = [255,255,255]
-        cv2.imshow("White Verity Array", warp.createLines(cv2.resize(whiteVerityImage, (0,0), fx=50, fy=50, interpolation=cv2.INTER_NEAREST)))
+        cv2.imshow("White Verity Array", createLines(cv2.resize(whiteVerityImage, (0,0), fx=50, fy=50, interpolation=cv2.INTER_NEAREST)))
         key = cv2.waitKey(1)
         if key == -1: continue
         match chr(key):

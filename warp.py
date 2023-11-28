@@ -1,13 +1,17 @@
 import cv2
 import numpy as np
 
-def warpImage(image: np.ndarray, points: tuple[int]) -> np.ndarray:
-    width = image.shape[1]
-    height = image.shape[0]
-    pts1 = np.float32(points)
-    pts2 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
-    matrix = cv2.getPerspectiveTransform(pts1, pts2)
-    return cv2.warpPerspective(image, matrix, (width, height))
+class Warp:
+    def __init__(self, points: tuple[int]) -> None:
+        self.points = points
+
+    def warp(self, image: np.ndarray) -> np.ndarray:
+        width = image.shape[1]
+        height = image.shape[0]
+        pts1 = np.float32(self.points)
+        pts2 = np.float32([[0, 0], [width, 0], [0, height], [width, height]])
+        matrix = cv2.getPerspectiveTransform(pts1, pts2)
+        return cv2.warpPerspective(image, matrix, (width, height))
 
 def createLines(picture: np.ndarray, lineCount: tuple[int]=(8, 8), lineColor: tuple[int]=(255, 0, 0), lineWidth: int=2) -> np.ndarray:
     height, width = picture.shape[:2]
@@ -17,15 +21,19 @@ def createLines(picture: np.ndarray, lineCount: tuple[int]=(8, 8), lineColor: tu
     return linedPicture
 
 if __name__ == "__main__":
-    import camera, configManager
+    from configManager import ConfigManager
+    from camera import Camera
 
+    configManager = ConfigManager("config.json")
     config = configManager.loadConfig()
-    warpPoints = config["warpPoints"]
+    
+    warper = Warp(config["warpPoints"])
+    camera = Camera(config["cameraID"])
 
     cv2.namedWindow("Camera", cv2.WINDOW_AUTOSIZE)
     while True:
         image = camera.photo()
-        cv2.imshow("Camera", createLines(warpImage(image, warpPoints)))
+        cv2.imshow("Camera", createLines(warper.warp(image)))
         key = cv2.waitKey(1)
         if key == -1: continue
         match chr(key):

@@ -201,6 +201,13 @@ class RobotTester(Robot):
                 self.move2square(letter + number, interface=sequencer)
         self.home(interface=sequencer)
         sequencer.run(self)
+    
+    def armTest(self):
+        "Test arm"
+        self.openGripper()
+        self.move(z=-30)
+        self.closeGripper()
+        self.move(z=0)
 
 class RobotContext:
     def __init__(self, port, baudrate) -> None:
@@ -211,15 +218,16 @@ class RobotContext:
         return self.robot
     
     def __exit__(self, exc_type, exc_value, traceback) -> None:
+        self.robot.openGripper()
         self.robot.shutdown()
 
-test = False
+test = True
 
 if __name__ == "__main__":
     port = [port.device for port in serial.tools.list_ports.comports() if port.description.startswith("USB-SERIAL")][0]
     with RobotContext(port, 115200) as robot:
         if test:
-            robot.cornerTest()
+            robot.armTest()
         else:
             while True:
                 cmd = input("Enter command: ")
