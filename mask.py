@@ -18,7 +18,9 @@ class Mask:
         return cv2.inRange(imageHSV, np.array(self.lower), np.array(self.upper))
 
 if __name__ == "__main__":
-    import camera, configManager
+    from configManager import ConfigManager
+    from warp import Warp, createLines
+    from camera import Camera
 
     configManager = ConfigManager("config.json")
     config = configManager.loadConfig()
