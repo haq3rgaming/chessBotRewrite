@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import warp
 
 def hsv2bgr(hsv: tuple[int]) -> tuple[int]:
         return tuple(cv2.cvtColor(np.uint8([[hsv]]), cv2.COLOR_HSV2BGR)[0][0])
@@ -17,9 +18,7 @@ class Mask:
         return cv2.inRange(imageHSV, np.array(self.lower), np.array(self.upper))
 
 if __name__ == "__main__":
-    from configManager import ConfigManager
-    from warp import Warp, createLines
-    from camera import Camera
+    import camera, configManager
 
     configManager = ConfigManager("config.json")
     config = configManager.loadConfig()
