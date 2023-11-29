@@ -1,19 +1,17 @@
 import cv2
-import numpy as np
-import camera, warp, configManager, mask
 
-textColor = (127, 255, 127)
 distance = 20
 
 def sliderChange(value) -> None:
-    global trackbarSetup, upper, lower
+    global trackbarSetup
     if not trackbarSetup: return
-    lower = cv2.getTrackbarPos("HueMin", "HSV Sliders White"), cv2.getTrackbarPos("SatMin", "HSV Sliders White"), cv2.getTrackbarPos("ValMin", "HSV Sliders White")
-    upper = cv2.getTrackbarPos("HueMax", "HSV Sliders White"), cv2.getTrackbarPos("SatMax", "HSV Sliders White"), cv2.getTrackbarPos("ValMax", "HSV Sliders White")
+    configManager.config["hsv"]["white"]["lower"] = cv2.getTrackbarPos("HueMin", "HSV Sliders White"), cv2.getTrackbarPos("SatMin", "HSV Sliders White"), cv2.getTrackbarPos("ValMin", "HSV Sliders White")
+    configManager.config["hsv"]["white"]["upper"] = cv2.getTrackbarPos("HueMax", "HSV Sliders White"), cv2.getTrackbarPos("SatMax", "HSV Sliders White"), cv2.getTrackbarPos("ValMax", "HSV Sliders White")
+    masker.update(configManager.config["hsv"]["white"]["upper"], configManager.config["hsv"]["white"]["lower"])
 
 def mouseEvent(event, x, y, flags, param) -> None:
     if event == cv2.EVENT_LBUTTONDOWN:
-        pixel = mask.bgr2hsv(image[y][x])
+        pixel = bgr2hsv(image[y][x])
         cv2.setTrackbarPos("HueMin", "HSV Sliders White", pixel[0] - distance)
         cv2.setTrackbarPos("SatMin", "HSV Sliders White", pixel[1] - distance)
         cv2.setTrackbarPos("ValMin", "HSV Sliders White", pixel[2] - distance)
@@ -22,30 +20,37 @@ def mouseEvent(event, x, y, flags, param) -> None:
         cv2.setTrackbarPos("ValMax", "HSV Sliders White", pixel[2] + distance)
 
 if __name__ == "__main__":
+    from configManager import ConfigManager
+    from warp import Warp
+    from camera import Camera
+    from mask import Mask, bgr2hsv
+
+    configManager = ConfigManager("config.json")
     config = configManager.loadConfig()
-    warpPoints = config["warpPoints"]
-    upper = config["hsv"]["white"]["upper"]
-    lower = config["hsv"]["white"]["lower"]
+
+    warper = Warp(config["warpPoints"])
+    camera = Camera(config["cameraID"])
+    masker = Mask(config["hsv"]["white"]["upper"], config["hsv"]["white"]["lower"])
     
     cv2.namedWindow("Camera", cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("Masked", cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("HSV Sliders White", cv2.WINDOW_AUTOSIZE)
 
     trackbarSetup = False
-    cv2.createTrackbar("HueMin", "HSV Sliders White", lower[0], 255, sliderChange)
-    cv2.createTrackbar("SatMin", "HSV Sliders White", lower[1], 255, sliderChange)
-    cv2.createTrackbar("ValMin", "HSV Sliders White", lower[2], 255, sliderChange)
-    cv2.createTrackbar("HueMax", "HSV Sliders White", upper[0], 255, sliderChange)
-    cv2.createTrackbar("SatMax", "HSV Sliders White", upper[1], 255, sliderChange)
-    cv2.createTrackbar("ValMax", "HSV Sliders White", upper[2], 255, sliderChange)
+    cv2.createTrackbar("HueMin", "HSV Sliders White", config["hsv"]["white"]["lower"][0], 255, sliderChange)
+    cv2.createTrackbar("SatMin", "HSV Sliders White", config["hsv"]["white"]["lower"][1], 255, sliderChange)
+    cv2.createTrackbar("ValMin", "HSV Sliders White", config["hsv"]["white"]["lower"][2], 255, sliderChange)
+    cv2.createTrackbar("HueMax", "HSV Sliders White", config["hsv"]["white"]["upper"][0], 255, sliderChange)
+    cv2.createTrackbar("SatMax", "HSV Sliders White", config["hsv"]["white"]["upper"][1], 255, sliderChange)
+    cv2.createTrackbar("ValMax", "HSV Sliders White", config["hsv"]["white"]["upper"][2], 255, sliderChange)
     trackbarSetup = True
 
     cv2.setMouseCallback("Camera", mouseEvent)
 
     while True:
-        image = warp.warpImage(camera.photo(), warpPoints)
+        image = warper.warp(camera.photo())
         cv2.imshow("Camera", image)
-        cv2.imshow("Masked", cv2.bitwise_and(image, image, mask=mask.maskByColor(image, upper, lower)))
+        cv2.imshow("Masked", cv2.bitwise_and(image, image, mask=masker.maskByColor(image)))
         key = cv2.waitKey(1)
         if key == -1: continue
         match chr(key):
@@ -54,8 +59,6 @@ if __name__ == "__main__":
                 break
             case "s":
                 print("Saving config")
-                config["hsv"]["white"]["upper"] = upper
-                config["hsv"]["white"]["lower"] = lower
-                configManager.saveConfig(config)
+                configManager.saveConfig()
     camera.release()
     cv2.destroyAllWindows()

@@ -13,7 +13,7 @@ class ConfigManager:
 
     def saveConfig(self) -> None:
         with open(self.filename, "w") as file:
-            file.write(json.dumps(config, indent=4))
+            file.write(json.dumps(self.config, indent=4))
 
 if __name__ == "__main__":
     manager = ConfigManager(filename)

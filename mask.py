@@ -13,6 +13,10 @@ class Mask:
         self.upper = upper
         self.lower = lower
 
+    def update(self, upper: tuple[int], lower: tuple[int]) -> None:
+        self.upper = upper
+        self.lower = lower
+
     def maskByColor(self, image: np.ndarray) -> np.ndarray:
         imageHSV = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         return cv2.inRange(imageHSV, np.array(self.lower), np.array(self.upper))

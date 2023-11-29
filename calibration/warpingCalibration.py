@@ -1,5 +1,4 @@
 import cv2
-import camera, warp, configManager
 
 textColor = (127, 255, 127)
 
@@ -20,7 +19,16 @@ cv2.namedWindow("Camera", cv2.WINDOW_AUTOSIZE)
 cv2.setMouseCallback("Camera", mouseEvent)
 
 if __name__ == "__main__":
+    from configManager import ConfigManager
+    from warp import Warp
+    from camera import Camera
+
+    configManager = ConfigManager("config.json")
     config = configManager.loadConfig()
+
+    warper = Warp(config["warpPoints"])
+    camera = Camera(config["cameraID"])
+
 
     image = camera.photo()
     while True:
@@ -37,12 +45,13 @@ if __name__ == "__main__":
                 image = camera.photo()
             case "s":
                 print("Warp points:", warpPoints)
-                config["warpPoints"] = warpPoints
-                configManager.saveConfig(config)
+                configManager.config["warpPoints"] = warpPoints
+                configManager.saveConfig()
             case "w":
+                warper.update(warpPoints)
                 if len(warpPoints) == 4:
                     print("Warping image")
-                    image = warp.warpImage(camera.photo(), warpPoints)
+                    image = warper.warp(camera.photo())
                 else:
                     print("Not enough warp points")
     camera.release()

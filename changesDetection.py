@@ -37,6 +37,9 @@ class changesDetection:
             if len(changesFrom) > 1:
                 print("Too many changes")
                 return False
+            if len(changesTo) != len(changesFrom):
+                print("Changes are not equal")
+                return False
             return changesFrom, changesTo
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@
       "justMyCode": true
     },
     {
-      "name": "Python: Calibration",
+      "name": "Python: CWD",
       "type": "python",
       "request": "launch",
       "program": "${file}",

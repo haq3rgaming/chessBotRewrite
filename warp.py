@@ -5,6 +5,9 @@ class Warp:
     def __init__(self, points: tuple[int]) -> None:
         self.points = points
 
+    def update(self, points: tuple[int]) -> None:
+        self.points = points
+
     def warp(self, image: np.ndarray) -> np.ndarray:
         width = image.shape[1]
         height = image.shape[0]
