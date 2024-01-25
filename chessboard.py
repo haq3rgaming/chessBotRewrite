@@ -12,6 +12,9 @@ class Board:
     def __init__(self) -> None:
         self.board = chess.Board() # Black is on bottom, white on top
 
+    def fen(self):
+        return self.board.fen()
+
     def turn(self, color: bool=None):
         if color is not None: self.board.turn = color
         return self.board.turn
@@ -22,14 +25,21 @@ class Board:
         except chess.IllegalMoveError:
             return False
 
+    def isCapture(self, move: str):
+        return self.board.is_capture(self.board.parse_san(move))
+
     def move(self, move):
         self.board.push_san(move)
 
-    def image(self):
-        svg = chess.svg.board(board=self.board, size=700)
+    def termination(self):
+        return self.board.is_game_over()
+
+    def image(self, **kwargs):
+        svg = chess.svg.board(board=self.board, size=700, **kwargs)
         png = svg2png(bytestring=svg)
         return cv2.imdecode(np.frombuffer(png, np.uint8), cv2.IMREAD_UNCHANGED)
 
-    def display(self):
-        cv2.imshow("Chessboard", self.image())
+    def display(self, **kwargs):
+        cv2.imshow("Chessboard", self.image(**kwargs))
+        cv2.waitKey(1)
 

@@ -5,9 +5,9 @@ distance = 20
 def sliderChange(value) -> None:
     global trackbarSetup
     if not trackbarSetup: return
-    configManager.config["hsv"]["white"]["lower"] = cv2.getTrackbarPos("HueMin", "HSV Sliders White"), cv2.getTrackbarPos("SatMin", "HSV Sliders White"), cv2.getTrackbarPos("ValMin", "HSV Sliders White")
-    configManager.config["hsv"]["white"]["upper"] = cv2.getTrackbarPos("HueMax", "HSV Sliders White"), cv2.getTrackbarPos("SatMax", "HSV Sliders White"), cv2.getTrackbarPos("ValMax", "HSV Sliders White")
-    masker.update(configManager.config["hsv"]["white"]["upper"], configManager.config["hsv"]["white"]["lower"])
+    configManager.config["hsv"]["black"]["lower"] = cv2.getTrackbarPos("HueMin", "HSV Sliders White"), cv2.getTrackbarPos("SatMin", "HSV Sliders White"), cv2.getTrackbarPos("ValMin", "HSV Sliders White")
+    configManager.config["hsv"]["black"]["upper"] = cv2.getTrackbarPos("HueMax", "HSV Sliders White"), cv2.getTrackbarPos("SatMax", "HSV Sliders White"), cv2.getTrackbarPos("ValMax", "HSV Sliders White")
+    masker.update(configManager.config["hsv"]["black"]["upper"], configManager.config["hsv"]["black"]["lower"])
 
 def mouseEvent(event, x, y, flags, param) -> None:
     if event == cv2.EVENT_LBUTTONDOWN:

@@ -35,21 +35,28 @@ if __name__ == "__main__":
     config = configManager.loadConfig()
 
     warper = Warp(config["warpPoints"])
-    masker = Mask(config["hsv"]["white"]["upper"], config["hsv"]["white"]["lower"])
+    maskerWhite = Mask(config["hsv"]["white"]["upper"], config["hsv"]["white"]["lower"])
+    maskerBlack = Mask(config["hsv"]["black"]["upper"], config["hsv"]["black"]["lower"])
     camera = Camera(config["cameraID"])
-    piecesDetect = piecesDetection()
+    piecesDetectWhite = piecesDetection()
+    piecesDetectBlack = piecesDetection(threshold=0.05)
 
     cv2.namedWindow("Camera", cv2.WINDOW_AUTOSIZE)
-    cv2.namedWindow("Masked", cv2.WINDOW_AUTOSIZE)
+    cv2.namedWindow("MaskedWhite", cv2.WINDOW_AUTOSIZE)
+    cv2.namedWindow("MaskedBlack", cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("White Verity Array", cv2.WINDOW_AUTOSIZE)
     
     while True:
         image = warper.warp(camera.photo())
         cv2.imshow("Camera", createLines(image))
-        cv2.imshow("Masked", masker.maskByColor(image))
-        whiteVerityArray = piecesDetect.createVerityArrayFromMask(masker.maskByColor(image)).tolist()
+        cv2.imshow("MaskedWhite", maskerWhite.maskByColor(image))
+        cv2.imshow("MaskedBlack", maskerBlack.maskByColor(image))
+        whiteVerityArray = piecesDetectWhite.createVerityArrayFromMask(maskerWhite.maskByColor(image)).tolist()
         whiteVerityImage = np.zeros((8,8,3), dtype=np.uint8); whiteVerityImage[whiteVerityArray] = [255,255,255]
+        blackVerityArray = piecesDetectBlack.createVerityArrayFromMask(maskerBlack.maskByColor(image)).tolist()
+        blackVerityImage = np.zeros((8,8,3), dtype=np.uint8); blackVerityImage[blackVerityArray] = [255,255,255]
         cv2.imshow("White Verity Array", createLines(cv2.resize(whiteVerityImage, (0,0), fx=50, fy=50, interpolation=cv2.INTER_NEAREST)))
+        cv2.imshow("Black Verity Array", createLines(cv2.resize(blackVerityImage, (0,0), fx=50, fy=50, interpolation=cv2.INTER_NEAREST)))
         key = cv2.waitKey(1)
         if key == -1: continue
         match chr(key):
