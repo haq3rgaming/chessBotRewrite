@@ -9,6 +9,9 @@ from cairosvg import svg2png
 import numpy as np
 
 class Board:
+    WHITE = True
+    BLACK = False
+
     def __init__(self) -> None:
         self.board = chess.Board() # Black is on bottom, white on top
 
@@ -29,7 +32,11 @@ class Board:
         return self.board.is_capture(self.board.parse_san(move))
 
     def move(self, move):
-        self.board.push_san(move)
+        try:
+            self.board.push_san(move)
+            return True
+        except Exception:
+            return False
 
     def termination(self):
         return self.board.is_game_over()

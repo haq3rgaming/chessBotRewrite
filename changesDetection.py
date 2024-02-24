@@ -9,7 +9,7 @@ class changesDetection:
 
     def show(self) -> None:
         for i in range(len(self.queue)):
-            displayVerityArray(self.queue[i], f"Image {i}")
+            displayVerityArray(self.queue[i], f"Image {i}, {id(self.queue[i])}")
             
     def add(self, image: np.ndarray) -> None:
         self.queue.append(deepcopy(image))
@@ -19,7 +19,7 @@ class changesDetection:
         if len(self.queue) == 0:
             print("Queue is empty")
             return False
-        cv2.destroyWindow(f"Image {len(self.queue) - 1}")
+        cv2.destroyWindow(f"Image {len(self.queue) - 1}, {id(self.queue[-1])}")
         self.queue.pop(-1)
         self.show()
 
@@ -35,8 +35,17 @@ class changesDetection:
                 print("No changes")
                 return False
             if len(changesFrom) > 1:
-                print("Too many changes")
-                return False
+                # detect castling
+                if (changesFrom[0][0], changesTo[0][0]) in ((7, 7), (0, 0)):
+                    # kingside
+                    if (changesFrom[0][1] == 7 or changesFrom[1][1] == 7) and (changesTo[0][1] == 5 or changesTo[1][1] == 5):
+                        return [[changesFrom[0][0], 4]], [[changesFrom[0][0], 6]]
+                    # queenside
+                    else:
+                        return [[changesFrom[0][0], 4]], [[changesFrom[0][0], 2]]
+                else:
+                    print("Too many changes")
+                    return False
             if len(changesTo) != len(changesFrom):
                 print("Changes are not equal")
                 return False

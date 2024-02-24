@@ -39,7 +39,7 @@ if __name__ == "__main__":
     maskerBlack = Mask(config["hsv"]["black"]["upper"], config["hsv"]["black"]["lower"])
     camera = Camera(config["cameraID"])
     piecesDetectWhite = piecesDetection()
-    piecesDetectBlack = piecesDetection(threshold=0.05)
+    piecesDetectBlack = piecesDetection()
 
     cv2.namedWindow("Camera", cv2.WINDOW_AUTOSIZE)
     cv2.namedWindow("MaskedWhite", cv2.WINDOW_AUTOSIZE)
