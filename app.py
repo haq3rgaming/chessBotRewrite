@@ -1,33 +1,91 @@
-import sys, traceback, serial.tools.list_ports
-import PySimpleGUI as sg
+import cv2
 
-from robot import Robot
+from chessboard import Board
+from chessEngine import ChessEngine
 
-import platform, ctypes
-if int(platform.release()) >= 8: ctypes.windll.shcore.SetProcessDpiAwareness(True)
-screenSize = sg.Window.get_screen_size()
+from configManager import ConfigManager
+from warp import Warp
+from camera import Camera
+from mask import Mask
+from piecesDetection import piecesDetection
+from changesDetection import changesDetection
+from change2Move import change2MoveConverter
 
-sg.theme("DarkAmber")
-sg.set_options(font=("Consolas", 16))
-guiSizeCoeficient = 2
+import serial.tools.list_ports
+from chessEngine import ChessEngine
+from robot import RobotContext
 
-baudrate = 115200
+configManager = ConfigManager("config.json")
+config = configManager.loadConfig()
+
+camera = Camera(config["cameraID"])
+warper = Warp(config["warpPoints"])
+maskerWhite = Mask(config["hsv"]["white"]["upper"], config["hsv"]["white"]["lower"])
+maskerBlack = Mask(config["hsv"]["black"]["upper"], config["hsv"]["black"]["lower"])
+piecesDetectWhite = piecesDetection()
+#piecesDetectBlack = piecesDetection()
+changesDetectorWhite = changesDetection()
+#changesDetectorBlack = changesDetection()
+converter = change2MoveConverter()
+
+chessboard = Board()
+chessEngine = ChessEngine()
+
+cv2.namedWindow("Chessboard", cv2.WINDOW_AUTOSIZE)
+
 port = [port.device for port in serial.tools.list_ports.comports() if port.description.startswith("USB-SERIAL")][0]
+capture = False
 
-layout = [
-    [sg.Text("Chess Bot")],
-]
+with RobotContext(port, 115200) as robot:
+    print("Robot started")
+    robot.dock()
+    print("Press any key when docked!")
+    if chr(cv2.waitKey(0)) == "q":
+        print("Quit")
+        exit()
+    image = warper.warp(camera.photo())
+    changesDetectorWhite.add(piecesDetectWhite.createVerityArrayFromMask(maskerWhite.maskByColor(image)).tolist())
+    #changesDetectorBlack.add(piecesDetectBlack.createVerityArrayFromMask(maskerBlack.maskByColor(image)).tolist())
 
-def main():
-    window = sg.Window("Chess Bot", layout, size=(screenSize[0]//guiSizeCoeficient, screenSize[1]//guiSizeCoeficient), resizable=False, enable_close_attempted_event=True)
+    # main loop
     while True:
-        event, values = window.read()
-        if event in (sg.WIN_CLOSED, sg.WIN_CLOSE_ATTEMPTED_EVENT, "exit"): break
-    window.close()
+        chessboard.display()
+        if capture:
+            print("Piece removed, don't move any pieces! Press any key when docked!")
+            if chr(cv2.waitKey(0)) == "q":
+                print("Quit")
+                exit()
+            image = warper.warp(camera.photo())
+            changesDetectorWhite.add(piecesDetectWhite.createVerityArrayFromMask(maskerWhite.maskByColor(image)).tolist())
+            capture = False
+        print("Current move:", "White" if chessboard.turn() else "Black")
+        
+        if chessboard.turn() == chessboard.WHITE:
+            if chr(cv2.waitKey(0)) == "q":
+                print("Quit")
+                break
 
-if __name__ == "__main__":
-    print("Starting...")
-    try: main()
-    except Exception:
-        print(traceback.format_exc())
-    print("Closing...")
+            image = warper.warp(camera.photo())
+            changesDetectorWhite.add(piecesDetectWhite.createVerityArrayFromMask(maskerWhite.maskByColor(image)).tolist())
+            detector = changesDetectorWhite
+            if changes := detector.detect():
+                tileFrom, tileTo = converter.convert(changes)
+                print(tileFrom, "->", tileTo)
+                if chessboard.isLegalMove(tileFrom + tileTo):
+                    chessboard.move(tileFrom + tileTo)
+                else:
+                    print("Cannot push, move is illegal")
+                    detector.pop()
+            else:
+                print("Detection failed")
+                detector.pop()
+        else:
+            move = chessEngine.getBestMove(chessboard)
+            print("Engine move:", move)
+            if chessboard.isCapture(move):
+                capture = True
+                robot.removePiece(move[2:4])
+            robot.movePiece(move[0:2], move[2:4])
+            robot.dock()
+            chessboard.move(move)
+            

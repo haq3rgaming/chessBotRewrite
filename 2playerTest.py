@@ -35,7 +35,7 @@ changesDetectorBlack.add(piecesDetectBlack.createVerityArrayFromMask(maskerBlack
 
 while True:
     chessboard.display()
-    print("White" if chessboard.turn() else "Black")
+    print("Current move:", "White" if chessboard.turn() else "Black")
     key = cv2.waitKey(0)
     if key == -1: continue
     match chr(key):

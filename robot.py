@@ -110,12 +110,12 @@ class RobotController:
     def closeGripper(self, **kwargs) -> None:
         "Closes gripper"
         interface: RobotController= kwargs.get("interface", self)
-        interface.send("M280 P0 S110")
+        interface.send("M280 P0 S80")
     
     def openGripper(self, **kwargs) -> None:
         "Opens gripper"
         interface: RobotController= kwargs.get("interface", self)
-        interface.send("M280 P0 S80")
+        interface.send("M280 P0 S30")
 
 class Robot(RobotController):
     class Sequencer:
@@ -179,7 +179,7 @@ class Robot(RobotController):
             print("Hard coded", square)
             return self.move(*hardCoded[square], z, **kwargs)
 
-    def movePiece(self, moveFrom, moveTo, altitude=82, **kwargs) -> None:
+    def movePiece(self, moveFrom, moveTo, altitude=87, **kwargs) -> None:
         "Moves piece from square to square"
         self.move2square(moveFrom, **kwargs)
         self.moveZ(moveFrom, -altitude, **kwargs)
@@ -192,7 +192,7 @@ class Robot(RobotController):
         self.openGripper(**kwargs)
         self.moveZ(moveTo, 0, **kwargs)
     
-    def removePiece(self, square, altitude=82, **kwargs) -> None:
+    def removePiece(self, square, altitude=87, **kwargs) -> None:
         "Removes piece from square"
         self.move2square(square, **kwargs)
         self.moveZ(square, -altitude, **kwargs)
@@ -242,13 +242,14 @@ class RobotContext:
         self.robot.shutdown()
         print("Robot shutdown")
 
-test = 0
+test = 1
 
 if __name__ == "__main__":
     port = [port.device for port in serial.tools.list_ports.comports() if port.description.startswith("USB-SERIAL")][0]
     with RobotContext(port, 115200) as robot:
         if test:
-            robot.cornerTest()
+            robot.movePiece("h1", "h5")
+            robot.movePiece("h5", "d5")
         else:
             robot.closeGripper()
             while True:

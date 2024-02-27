@@ -31,8 +31,9 @@ class changesDetection:
             changes = np.logical_xor(self.queue[-2], self.queue[-1])
             changesFrom = np.argwhere(np.logical_and(changes, self.queue[-2])).tolist()
             changesTo =  np.argwhere(np.logical_and(changes, self.queue[-1])).tolist()
-            if len(changesFrom) == 0:
+            if len(changesFrom) == 0 or len(changesTo) == 0:
                 print("No changes")
+                print(changesFrom, "|", changesTo)
                 return False
             if len(changesFrom) > 1:
                 # detect castling
