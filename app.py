@@ -23,9 +23,7 @@ warper = Warp(config["warpPoints"])
 maskerWhite = Mask(config["hsv"]["white"]["upper"], config["hsv"]["white"]["lower"])
 maskerBlack = Mask(config["hsv"]["black"]["upper"], config["hsv"]["black"]["lower"])
 piecesDetectWhite = piecesDetection()
-#piecesDetectBlack = piecesDetection()
 changesDetectorWhite = changesDetection()
-#changesDetectorBlack = changesDetection()
 converter = change2MoveConverter()
 
 chessboard = Board()
@@ -45,10 +43,9 @@ with RobotContext(port, 115200) as robot:
         exit()
     image = warper.warp(camera.photo())
     changesDetectorWhite.add(piecesDetectWhite.createVerityArrayFromMask(maskerWhite.maskByColor(image)).tolist())
-    #changesDetectorBlack.add(piecesDetectBlack.createVerityArrayFromMask(maskerBlack.maskByColor(image)).tolist())
 
     # main loop
-    while True:
+    while not chessboard.termination():
         chessboard.display()
         if capture:
             print("Piece removed, don't move any pieces! Press any key when docked!")
@@ -88,4 +85,8 @@ with RobotContext(port, 115200) as robot:
             robot.movePiece(move[0:2], move[2:4])
             robot.dock()
             chessboard.move(move)
+    print("Game terminated")
+    print(chessboard.result())
+
+cv2.destroyAllWindows()
             

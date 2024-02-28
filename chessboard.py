@@ -41,6 +41,9 @@ class Board:
     def termination(self):
         return self.board.is_game_over()
 
+    def result(self):
+        return self.board.result()
+
     def image(self, **kwargs):
         svg = chess.svg.board(board=self.board, size=700, **kwargs)
         png = svg2png(bytestring=svg)
