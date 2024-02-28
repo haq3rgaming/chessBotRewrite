@@ -47,14 +47,6 @@ with RobotContext(port, 115200) as robot:
     # main loop
     while not chessboard.termination():
         chessboard.display()
-        if capture:
-            print("Piece removed, don't move any pieces! Press any key when docked!")
-            if chr(cv2.waitKey(0)) == "q":
-                print("Quit")
-                exit()
-            image = warper.warp(camera.photo())
-            changesDetectorWhite.add(piecesDetectWhite.createVerityArrayFromMask(maskerWhite.maskByColor(image)).tolist())
-            capture = False
         print("Current move:", "White" if chessboard.turn() else "Black")
         
         if chessboard.turn() == chessboard.WHITE:
@@ -85,6 +77,14 @@ with RobotContext(port, 115200) as robot:
             robot.movePiece(move[0:2], move[2:4])
             robot.dock()
             chessboard.move(move)
+        if capture:
+            print("Piece removed, don't move any pieces! Press any key when docked!")
+            if chr(cv2.waitKey(0)) == "q":
+                print("Quit")
+                exit()
+            image = warper.warp(camera.photo())
+            changesDetectorWhite.add(piecesDetectWhite.createVerityArrayFromMask(maskerWhite.maskByColor(image)).tolist())
+            capture = False
     print("Game terminated")
     print(chessboard.result())
 
