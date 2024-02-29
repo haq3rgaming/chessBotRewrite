@@ -86,7 +86,7 @@ with RobotContext(port, 115200) as robot:
             changesDetectorWhite.add(piecesDetectWhite.createVerityArrayFromMask(maskerWhite.maskByColor(image)).tolist())
             capture = False
     print("Game terminated")
-    print(chessboard.result())
+    print("Result:", chessboard.result())
 
 cv2.destroyAllWindows()
             
