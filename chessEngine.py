@@ -1,5 +1,6 @@
 from stockfish import Stockfish
 from chessboard import Board
+import cv2
 
 class ChessEngine:
     def __init__(self, threads: int=4, hash: int=512, skill_level: int=20, minimum_thinking_time: int=20):
@@ -18,4 +19,7 @@ class ChessEngine:
 
 if __name__ == "__main__":
     engine = ChessEngine()
-    print(engine.getBestMove("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"))
+    board = Board()
+    board.display()
+    print(engine.getBestMove(board))
+    cv2.waitKey(0)
